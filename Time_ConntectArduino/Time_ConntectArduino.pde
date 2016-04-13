@@ -3,6 +3,10 @@ import processing.serial.*;
 import processing.video.*;
 Movie myMovie;
 Serial port; 
+ String val;
+ // since we're doing serial handshaking, 
+// we need to check if we've heard from the microcontroller
+boolean firstContact = false;
 
 
 int iLight_Counts = 11 ;
@@ -18,7 +22,7 @@ int iNow = 0 ;
 void setup() {
   port = new Serial( this, Serial.list()[2], 9600 );
   printArray(Serial.list());
-  
+  port.bufferUntil('\n'); 
   size(1280,800);
   frameRate(30);
   myMovie = new Movie(this, "00.mov");
@@ -36,25 +40,21 @@ void setup() {
         } // for()
   
         // Initial: Delay 3 seconds and read 10 pair numbers.
-port.write('1');
-port.write('2');
-port.write('3');
-port.write('4');
-port.write('5');
-        delay( 10000 ) ;
-        nowStat = port.readStringUntil( lf ) ;
-        
-        for ( int i = 0 ; i < 10 ; i ++ ) {
-            delay( 200 ) ;
-            nowStat = port.readStringUntil( lf ) ;
-            Aver_Stat[i] = int( splitTokens( nowStat, "," ) ) ;
-            //println( nowStat ) ;
-        } // for
-  
-        // Get average to 'iInit_Values'.
-        for ( int i = 0 ; i < 10 ; i ++ )
-          for ( int j = 0 ; j < iLight_Counts ; j ++ )
-            iInit_Values[j] += Aver_Stat[i][j] / 10 ;
+
+//        delay( 500 ) ;
+//        nowStat = port.readStringUntil( lf ) ;
+//        
+//        for ( int i = 0 ; i < 10 ; i ++ ) {
+//            delay( 200 ) ;
+//            nowStat = port.readStringUntil( lf ) ;
+//            Aver_Stat[i] = int( splitTokens( nowStat, "," ) ) ;
+//            //println( nowStat ) ;
+//        } // for
+//  
+//        // Get average to 'iInit_Values'.
+//        for ( int i = 0 ; i < 10 ; i ++ )
+//          for ( int j = 0 ; j < iLight_Counts ; j ++ )
+//            iInit_Values[j] += Aver_Stat[i][j] / 10 ;
 } //end of Setup
 float md,mt;
 int playLight = 0;
@@ -71,25 +71,29 @@ void draw() {
    mt = myMovie.time();
 //    float ms = 1.0;
   if (mt < md/5.0 && playLight !=1) {
-    line(0, 0, width, height/5);
+    ///line(0, 0, width, height/5);
       port.write('1');
       playLight = 1;
   }else if
-    (md/5.0 < mt && mt < md/5.0*2 && playLight !=2){ line(0, 0, width, height/5*2);
+    (md/5.0 < mt && mt < md/5.0*2 && playLight !=2){ 
+      //line(0, 0, width, height/5*2);
   port.write('2');
   playLight =2;
 }else if 
-  (md/5.0*2 < mt && mt < md/5.0*3 && playLight !=3){ line(0, 0, width, height/5*3);
+  (md/5.0*2 < mt && mt < md/5.0*3 && playLight !=3){ 
+    //line(0, 0, width, height/5*3);
   port.write('3');
   playLight = 3;
 }
   else if
-  (md/5.0*3 < mt && mt < md/5.0*4 && playLight !=4){ line(0, 0, width, height/5*4);
+  (md/5.0*3 < mt && mt < md/5.0*4 && playLight !=4){ 
+    //line(0, 0, width, height/5*4);
   port.write('4');
   playLight = 4;
 }
   else if 
-  (md/5.0*4 < mt && mt < md/5.0*5 && playLight !=5){ line(0, 0, width, height/5*5);
+  (md/5.0*4 < mt && mt < md/5.0*5 && playLight !=5){ 
+    //line(0, 0, width, height/5*5);
   port.write('5');
   playLight = 5;
 }
@@ -111,13 +115,14 @@ void draw() {
                          changeMark[7]=0;
                          } //if Change
  
-  if ( 0 < port.available() ) {
-    nowStat = port.readStringUntil( lf ) ;
-          if ( nowStat != null && nowStat.charAt(0)==6) {
-              print( "\n Receiving:" + nowStat ) ;        
-                  iLight_Vals = int( splitTokens( nowStat, "," ) ) ;
-                  
-                  if ( iLight_Vals.length >= iLight_Counts && iLight_Vals[0]==5 ) {
+//  if ( 0 < port.available() ) {
+  //  nowStat = port.readStringUntil( '\n' ) ;
+    print(val);
+          if ( val != null ) {
+              println( "\n Receiving:" + val ) ;        
+                  iLight_Vals = int( splitTokens( val, "," ) ) ;
+                         
+                  if ( iLight_Vals.length >= iLight_Counts && iLight_Vals[0]==6 ) {
 
                         int cNum = cANum;
                         sensorLight(cNum); 
@@ -132,11 +137,11 @@ void draw() {
     
           if (myMovie.available()) {
     myMovie.read();
-  }
-  
+
+}
 
 
-} //end of Arduino
+ //} //end of Arduino
     
     
 
@@ -183,7 +188,7 @@ void sensorLight(int cNum){
       }
       
         for ( int i = 6 ;  i < iLight_Counts ; i ++ ){
-                       if ( iLight_Vals[i] - iPre_Light_Vals[i]  >= 25 ){
+                       if ( iLight_Vals[i] - iPre_Light_Vals[i]  >= 75 ){
                        changeMark[0]=sLCount;
                        changeMark[i-5]++;
                        changeMark[7]++;
@@ -194,6 +199,41 @@ void sensorLight(int cNum){
 
                        iPre_Light_Vals[i] = iLight_Vals[i] ;               
         }
-         sLCount++;
-         
+         sLCount++;   
+}
+
+
+void serialEvent( Serial port) {
+//put the incoming data into a String - 
+//the '\n' is our end delimiter indicating the end of a complete packet
+val = port.readStringUntil('\n');
+//make sure our data isn't empty before continuing
+if (val != null) {
+  //trim whitespace and formatting characters (like carriage return)
+  val = trim(val);
+  //println(val);
+
+  //look for our 'A' string to start the handshake
+  //if it's there, clear the buffer, and send a request for data
+  if (firstContact == false) {
+    if (val.equals("A")) {
+      port.clear();
+      firstContact = true;
+      port.write("A");
+      println("contact");
+    }
+  }
+  else { //if we've already established contact, keep getting and parsing data
+   // println(val);
+
+//    if (mousePressed == true) 
+//    {                           //if we clicked in the window
+//      port.write('1');        //send a 1
+//      println("1");
+//    }
+
+    // when you've parsed the data you have, ask for more:
+    port.write("A");
+    }
+  }
 }

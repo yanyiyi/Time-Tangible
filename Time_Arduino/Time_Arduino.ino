@@ -1,8 +1,11 @@
-//#include <Ultrasonic.h>
-#define TRIGGER_PIN  8
-#define ECHO_PIN     9
-//Ultrasonic ultrasonic(TRIGGER_PIN, ECHO_PIN);
-char val;
+////#include <Ultrasonic.h>
+//#define TRIGGER_PIN  8
+//#define ECHO_PIN     9
+////Ultrasonic ultrasonic(TRIGGER_PIN, ECHO_PIN);
+char val; // Data received from the serial port
+int ledPin = 13; // Set the pin to digital I/O 13
+boolean ledState = LOW; //to toggle our LED
+
 int cellPin = A4;
 int cellPin1 = A3;
 int cellPin2 = A2;
@@ -110,7 +113,7 @@ void loop()
 
          for( int i = 0;i <255 ;i+=10) {
           analogWrite(dig08, i) ;
-          delay(50);
+          delay(20);
          }
           
     }
@@ -120,7 +123,7 @@ void loop()
  Dim();
           for( int i = 0;i <255 ;i+=10) {
           analogWrite(dig09, i) ;
-          delay(50);
+          delay(20);
          }
     }
     if(val == '3') //if we get a 1
@@ -128,7 +131,7 @@ void loop()
   Dim();
           for( int i = 0;i <255 ;i+=10) {
           analogWrite(dig10, i) ;
-          delay(50);
+          delay(20);
          }
     }
     if(val == '4') //if we get a 1
@@ -137,7 +140,7 @@ void loop()
   Dim();
           for( int i = 0;i <255 ;i+=10) {
           analogWrite(dig11, i) ;
-          delay(50);
+          delay(20);
          }
     }
     if(val == '5') //if we get a 1
@@ -146,10 +149,10 @@ void loop()
   Dim();
          for( int i = 0;i <255 ;i+=10) {
           analogWrite(dig12, i) ;
-          delay(50);
+          delay(20);
          }
     }
-    delay(100);
+    delay(50);
   } 
     else {
 
